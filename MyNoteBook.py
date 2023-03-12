@@ -9,10 +9,10 @@ for notebooks in os.listdir():
         with io.open(notebooks, 'r', encoding='utf-8') as f:
             nb = read(f, 4)
         notebook = notebooks.split('.')[0]
-        script = open('%s.py'% notebooks,'w')
+        script = open('%s.py'% notebook,'w')
         for cell in nb.cells:
             if cell.cell_type == 'code':
                 # transform the input to executable Python
                 code = InteractiveShell.instance().input_transformer_manager.transform_cell(cell.source)
                 script.write(code)
-    script.close()
+        script.close()

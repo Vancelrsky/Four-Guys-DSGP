@@ -2,8 +2,6 @@ import numpy as np
 import gzip
 import pandas as pd
 from sklearn.impute import KNNImputer 
-
-
 # this method take a dataframe as input, return the feature part and label part
 def parse_header_of_csv(csv_df):
     # Isolate the headline columns:
@@ -111,9 +109,7 @@ def get_df_list():
             Main_X = pd.concat([Main_X, X.loc[:,X.columns.str.startswith(main_feature[j])]], axis=1)
         instance.append(Main_X)
     return instance 
-
-
-# ç”¨å‡å€¼è¡¥é™¤äº†æ‰‹è¡¨çš„æ•°æ®
+# ÓÃ¾ùÖµ²¹³ıÁËÊÖ±íµÄÊı¾İ
 def non_watch_value_imputer(df):
     # get the data except watch
     non_watch_values = df.loc[:,(df.columns.str.startswith('watch_') == False)]
@@ -129,9 +125,16 @@ def non_watch_value_imputer(df):
     #combine the watch data
     combine_data = pd.concat([valid_data,df.loc[:,df.columns.str.startswith('watch_')]],axis=1,ignore_index=False)
     return combine_data
-# ç”¨å…¶ä»–ä¼ æ„Ÿå™¨æ•°æ®çš„KNNè¡¥æ‰‹è¡¨æ•°æ®
+# ÓÃÆäËû´«¸ĞÆ÷Êı¾İµÄKNN²¹ÊÖ±íÊı¾İ
 def KNN_for_watch_data(df,K):
     #input data and K neighbors
     imputer = KNNImputer(n_neighbors=K)
     df[list(df.columns)] = imputer.fit_transform(df)
     return df 
+instance = get_df_list()
+
+test_example = instance[0]
+
+cleaned_data = non_watch_value_imputer(test_example)
+cleaned_data = KNN_for_watch_data(cleaned_data,10)
+cleaned_data
