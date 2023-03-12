@@ -15,4 +15,4 @@ for notebooks in os.listdir():
                 # transform the input to executable Python
                 code = InteractiveShell.instance().input_transformer_manager.transform_cell(cell.source)
                 script.write(code)
-script.close()
+    script.close()
