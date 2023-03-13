@@ -87,12 +87,12 @@ by calling this method we can get a list of dataframe which contain all the user
 //3.6 v0 may get label lists later w.
 Author chen
 """
-def get_df_list():
+def get_df_list(uuid_list):
     #To create uuid_list which includes all uuid
-    uuid_list = []
+    """ uuid_list = []
     f = open('UUID List.txt', 'r')
     for line in f.readlines():
-        uuid_list.append(line.strip())
+        uuid_list.append(line.strip()) """
 
     main_feature = []
     f = open('Main Feature.txt', 'r')
@@ -137,8 +137,7 @@ def get_cross_validation(type, folds_num):
     uuid = []
     for fold in os.listdir('Splitted_folds'):
         if  folds_num == int(fold.split('_')[1]) and str(type).lower() == fold.split('_')[2].lower():
-            fold_loc = "Splitted_folds/%s" % fold
-            uuid_list = open(fold_loc, 'r')
+            uuid_list = open("Splitted_folds/%s" % fold, 'r')
             fold_uuid_list = uuid_list.read().split()
             uuid = uuid + fold_uuid_list
     return uuid
