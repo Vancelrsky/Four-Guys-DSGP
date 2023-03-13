@@ -2,6 +2,7 @@ import numpy as np
 import gzip
 import pandas as pd
 from sklearn.impute import KNNImputer 
+import os
 # this method take a dataframe as input, return the feature part and label part
 def parse_header_of_csv(csv_df):
     # Isolate the headline columns:
@@ -131,10 +132,13 @@ def KNN_for_watch_data(df,K):
     imputer = KNNImputer(n_neighbors=K)
     df[list(df.columns)] = imputer.fit_transform(df)
     return df 
-instance = get_df_list()
-
-test_example = instance[0]
-
-cleaned_data = non_watch_value_imputer(test_example)
-cleaned_data = KNN_for_watch_data(cleaned_data,10)
-cleaned_data
+def get_cross_validation(type, folds_num):
+    #  ‰»Îtype”Îfolds_num, ∑µªÿuuid_list
+    uuid = []
+    for fold in os.listdir('Splitted_folds'):
+        if  folds_num == int(fold.split('_')[1]) and str(type).lower() == fold.split('_')[2].lower():
+            fold_loc = "Splitted_folds/%s" % fold
+            uuid_list = open(fold_loc, 'r')
+            fold_uuid_list = uuid_list.read().split()
+            uuid = uuid + fold_uuid_list
+    return uuid
