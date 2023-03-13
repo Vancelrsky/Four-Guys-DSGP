@@ -3,6 +3,8 @@ import gzip
 import pandas as pd
 from sklearn.impute import KNNImputer 
 import os
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 # this method take a dataframe as input, return the feature part and label part
 def parse_header_of_csv(csv_df):
     # Isolate the headline columns:
@@ -116,7 +118,6 @@ def get_df(uuid):
     for line in f.readlines():
         main_feature.append(line.strip())
 
-    instance = []
     # Run all uuid 
     (X,Y,M,timestamps,feature_names,label_names) = read_user_data(uuid)
 
@@ -156,3 +157,26 @@ def get_cross_validation(type, folds_num):
             fold_uuid_list = uuid_list.read().split()
             uuid = uuid + fold_uuid_list
     return uuid
+def get_cleaned_uuid():
+    instances = []
+    uuid_list = open('UUID List.txt','r').read().split()
+    for uuid in uuid_list:
+        try:
+            data = pd.read_csv('Cleaned_data/%s.csv' % uuid,index_col=0)
+        except:
+            1 == 1
+    instances.append(data)
+    return instances
+def pca_to_data(csv_df,n):
+
+    pca = PCA(n_components=n)
+    features = csv_df.loc[:,csv_df.columns.str.startswith('audio_naive')]
+    new_features = pca.fit_transform(features)
+
+    print('PCA explained variance ratio is', pca.explained_variance_ratio_.sum())
+
+    new_feature_df = pd.DataFrame(data=new_features,index=csv_df.index,columns=['audio_naive:pc1','audio_naive:pc2'])
+    other_features = csv_df.loc[:,(csv_df.columns.str.startswith('audio_naive') == False)]
+    new_feature_df = pd.concat([other_features,new_feature_df],axis=1,ignore_index=False)
+
+    return new_feature_df
