@@ -14,7 +14,6 @@ watch_acceleration:magnitude_stats:mean
 watch_acceleration:3d:mean_x
 watch_acceleration:3d:mean_y
 watch_acceleration:3d:mean_z
-watch_heading:mean_cos
 audio_naive:mfcc0:mean
 audio_naive:mfcc1:mean
 audio_naive:mfcc2:mean

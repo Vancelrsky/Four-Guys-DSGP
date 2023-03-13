@@ -87,8 +87,13 @@ by calling this method we can get a list of dataframe which contain all the user
 //3.6 v0 may get label lists later w.
 Author chen
 """
-def get_df_list(uuid_list):
+def get_df_list():
     #To create uuid_list which includes all uuid
+    uuid_list = []
+    f = open('UUID List.txt', 'r')
+    for line in f.readlines():
+        uuid_list.append(line.strip())
+
     main_feature = []
     f = open('Main Feature.txt', 'r')
     for line in f.readlines():
@@ -104,7 +109,22 @@ def get_df_list(uuid_list):
         for j in range(1,len(main_feature)):
             Main_X = pd.concat([Main_X, X.loc[:,X.columns.str.startswith(main_feature[j])]], axis=1)
         instance.append(Main_X)
-    return instance 
+    return instance
+def get_df(uuid):
+    main_feature = []
+    f = open('Main Feature.txt', 'r')
+    for line in f.readlines():
+        main_feature.append(line.strip())
+
+    instance = []
+    # Run all uuid 
+    (X,Y,M,timestamps,feature_names,label_names) = read_user_data(uuid)
+
+    # Create dataframe for all Main Feature value
+    Main_X = pd.DataFrame(X.loc[:,X.columns.str.startswith(main_feature[0])], columns = [main_feature[0]])
+    for j in range(1,len(main_feature)):
+        Main_X = pd.concat([Main_X, X.loc[:,X.columns.str.startswith(main_feature[j])]], axis=1)
+    return Main_X
 # 用均值补除了手表的数据
 def non_watch_value_imputer(df):
     # get the data except watch
@@ -136,9 +156,3 @@ def get_cross_validation(type, folds_num):
             fold_uuid_list = uuid_list.read().split()
             uuid = uuid + fold_uuid_list
     return uuid
-def uuid_list():
-    uuid_list = []
-    f = open('UUID List.txt', 'r')
-    for line in f.readlines():
-        uuid_list.append(line.strip())
-    return uuid_list
