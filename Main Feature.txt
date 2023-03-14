@@ -44,10 +44,6 @@ discrete:ringer_mode:is_normal
 discrete:ringer_mode:is_silent_no_vibrate
 discrete:ringer_mode:is_silent_with_vibrate
 discrete:ringer_mode:missing
-lf_measurements:relative_humidity
-lf_measurements:battery_level
-lf_measurements:temperature_ambient
-lf_measurements:pressure
 discrete:app_state:is_active
 discrete:app_state:is_inactive
 discrete:app_state:is_background
