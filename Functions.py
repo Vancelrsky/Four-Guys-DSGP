@@ -162,6 +162,7 @@ def pca_to_data(csv_df,n):
     pca = PCA(n_components=n)
     features = csv_df.loc[:,csv_df.columns.str.startswith('audio_naive')]
     new_features = pca.fit_transform(features)
+    pca_components = pca.components_
 
     print('PCA explained variance ratio is', pca.explained_variance_ratio_.sum())
 
@@ -169,54 +170,5 @@ def pca_to_data(csv_df,n):
     other_features = csv_df.loc[:,(csv_df.columns.str.startswith('audio_naive') == False)]
     new_feature_df = pd.concat([other_features,new_feature_df],axis=1,ignore_index=False)
 
-    return new_feature_df
-# 睡眠 效率 娱乐 生活 运动 通勤
-"""
-this method is used to get our self defined label for the data
-input : ndarry of original label
-output: list of label
-why 3.14
-"""
-def getNewLabel(Y):
-    mode = [['SLEEPING'],['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],['IN_A_CAR', 'ON_A_BUS', 'DRIVE_-_I_M_THE_DRIVER', 'DRIVE_-_I_M_A_PASSENGER','STAIRS_-_GOING_DOWN', 'ELEVATOR',],['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],['COOKING', 'BATHING_-_SHOWER', 'CLEANING', 'DOING_LAUNDRY', 'WASHING_DISHES', 'EATING', 'TOILET', 'GROOMING', 'DRESSING']]
-    newLabel = ['sleep','exercise','efficiency','on_the_way','entertainment','life_activity']
-    nMode = [0,0,0,0,0,0]
-    label = []
-    for i in range(0,len(mode)):
-        tempMode = []
-        for j in range(0,len(mode[i])):
-            tempMode.append(label_names.index(mode[i][j]))
-        nMode[i] = tempMode
 
-    for i in range(0,s[0]):
-        temp = np.array([0,0,0,0,0,0])
-        if Y[i][nMode[0]].sum() > 0:
-            label.append(newLabel[0])
-        elif Y[i][nMode[2]].sum() > 0:
-            label.append(newLabel[2])
-        elif Y[i][nMode[4]].sum() > 0:
-            label.append(newLabel[4])
-        elif Y[i][nMode[5]].sum() > 0:
-            label.append(newLabel[5])
-        elif Y[i][nMode[1]].sum() > 0:
-            label.append(newLabel[1])
-        elif Y[i][nMode[3]].sum() > 0:
-            label.append(newLabel[3])
-
-
-    return label
-
-"""
-this method is used to count the number of each label
-input: list of label
-output: bar plot
-why 3.14
-"""
-def plotCount(li):
-    count = Counter(li)
-    plt.figure(figsize=(10,5))
-    plt.bar(count.keys(),count.values())
-    plt.xlabel('label')
-    plt.ylabel('count')
-    plt.title('number of each label')
-    plt.show()
+    return (new_feature_df, pca_components)

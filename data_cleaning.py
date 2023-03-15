@@ -1,28 +1,12 @@
-import os 
-os.system('Python MyNoteBook.py')
+get_ipython().run_line_magic('run', 'MyNoteBook.py')
 import Functions
+from sklearn.decomposition import PCA
 import pandas as pd
-
-""" 
+import gzip
 uuid_list = []
 f = open('UUID List.txt', 'r')
 for line in f.readlines():
     uuid_list.append(line.strip())
-for uuid in uuid_list:
-    data = Functions.get_df(uuid)
-    try:
-        # fill in with mean values
-        cleaned_data = Functions.non_watch_value_imputer(data)
-        # fill watch data by using KNN
-        cleaned_data = Functions.KNN_for_watch_data(cleaned_data,10)
-        # use PCA to get lower dimension for Audio data
-        cleaned_data = Functions.pca_to_data(cleaned_data,2)
-        cleaned_data.to_csv('Cleaned_data/%s.csv'%uuid,mode = 'w')
-    except:
-        print(uuid, 'failed to output') 
-"""
-
-uuid_list = Functions.get_cross_validation('train',0)
 valid_data = pd.DataFrame()
 for uuid in uuid_list:
     df = Functions.get_df(uuid)
@@ -34,7 +18,25 @@ for uuid in uuid_list:
         valid_data = pd.concat([valid_data,cleaned_data],axis=0,ignore_index=False)
     except:
         print(uuid,'failed to export')
+valid_data.to_csv('cleaned_data.zip',mode = 'w',compression= 'gzip')
+new_label_data = pd.DataFrame()
+with gzip.open('cleaned_data.zip','rb') as data:
+    data = pd.read_csv(data,index_col=[0,1])
+for uuid in data.groupby('uuid').count().index:
+    X,Y,M,timestamps,feature_names,label_names = Functions.read_user_data(uuid)
+    label = pd.DataFrame(data=Y,columns=label_names)
+    main_label_list = ['LYING_DOWN','SITTING','FIX_walking','FIX_running','BICYCLING','OR_standing']
+    label = label[main_label_list]
+    new_label = []
+    for i in label.index:
+        if label.loc[i,:].values.any() == False:
+            new_label.append('Other')
+        else:
+            for j in main_label_list:
+                if label.loc[i,j] == True:
+                    new_label.append(j)
+    muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
+    new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
+    new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
 
-
-valid = Functions.pca_to_data(valid_data,2)
-valid.to_csv('train_data.csv',mode = 'w')
+new_label_data.to_csv('new_label_data.zip',mode = 'w',compression= 'gzip')
