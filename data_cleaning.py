@@ -19,22 +19,51 @@ for uuid in uuid_list:
     except:
         print(uuid,'failed to export')
 valid_data.to_csv('cleaned_data.zip',mode = 'w',compression= 'gzip')
-new_label_data = pd.DataFrame()
 with gzip.open('cleaned_data.zip','rb') as data:
     data = pd.read_csv(data,index_col=[0,1])
+main_label_list = [['SLEEPING'],
+                   ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],
+                   ['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],
+                   ['COOKING', 'BATHING_-_SHOWER', 'CLEANING', 'DOING_LAUNDRY', 'WASHING_DISHES', 'EATING', 'TOILET', 'GROOMING', 'DRESSING'],
+                   ['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],
+                   ['IN_A_CAR', 'ON_A_BUS', 'DRIVE_-_I_M_THE_DRIVER', 'DRIVE_-_I_M_A_PASSENGER','STAIRS_-_GOING_DOWN', 'ELEVATOR']]
+new_label_list = ['sleep','entertainment','exercise','life_activity','efficiency','on_the_way']
+new_label_dict = {'sleep':0,'entertainment':1,'exercise':2,'life_activity':3,'efficiency':4,'on_the_way':5,'Normal':6}
+all_label_list = []
+
+for i in main_label_list:
+    all_label_list = all_label_list + i
+
+new_label_data = pd.DataFrame()
 for uuid in data.groupby('uuid').count().index:
     X,Y,M,timestamps,feature_names,label_names = Functions.read_user_data(uuid)
-    label = pd.DataFrame(data=Y,columns=label_names)
-    main_label_list = ['LYING_DOWN','SITTING','FIX_walking','FIX_running','BICYCLING','OR_standing']
-    label = label[main_label_list]
+    label_pair = pd.DataFrame(
+        columns = ['Label Name'],
+        index = timestamps
+    )
+    s = Y.shape
+
+
+    for i in range(0,s[0]): #跑每個timestamps
+        arr = np.where(Y[i]==1) #尋找這個timestamp 哪些label是ture
+        temp = []
+        for j in arr[0]:
+            temp.append(label_names[j]) #將這個timestamp true的label name拼成list
+        label_pair.loc[timestamps[i], 'Label Name'] = temp #把list放進對應的dataframe位置
+
     new_label = []
-    for i in label.index:
-        if label.loc[i,:].values.any() == False:
-            new_label.append('Other')
-        else:
-            for j in main_label_list:
-                if label.loc[i,j] == True:
-                    new_label.append(j)
+    for index in range(len(label_pair.index)):
+        label = label_pair.iloc[index].values[0]
+        for num,status in enumerate(main_label_list):
+            if bool(set(status) & set(label)):
+                new_label.append(num)
+                break
+            elif bool(set(label) & set(all_label_list)):
+                continue
+            else:
+                new_label.append(new_label_dict['Normal'])
+                break
+
     muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
     new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
     new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)

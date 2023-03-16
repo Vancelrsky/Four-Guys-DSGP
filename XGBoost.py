@@ -10,6 +10,7 @@ with gzip.open('cleaned_data.zip','rb') as file:
 
 with gzip.open('new_label_data.zip','rb') as file:
     new_label_data = pd.read_csv(file,index_col=[0,1])
+new_label_data.value_counts()
 # split data
 X_train, X_test, Y_train, Y_test = train_test_split(feature_data,new_label_data,test_size= 0.2, random_state = 6)
 # fit model 

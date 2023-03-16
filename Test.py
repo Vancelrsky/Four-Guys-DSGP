@@ -5,38 +5,38 @@ import pandas as pd
 import gzip
 with gzip.open('cleaned_data.zip','rb') as data:
     data = pd.read_csv(data,index_col=[0,1])
-train_uuid = Functions.get_cross_validation('train',0)
-train_uuid_list = []
-for uuid in train_uuid:
-    if uuid in data.groupby('uuid').count().index:
-        train_uuid_list.append(uuid)
-train_data = data.loc[train_uuid_list][:]
 
-main_label_list = ['LYING_DOWN','SITTING','FIX_walking','FIX_running','BICYCLING','OR_standing']
-main_label_dict = {'LYING_DOWN':0,'SITTING':1,'FIX_walking':2,'FIX_running':3,'BICYCLING':4,'OR_standing':5,'Other':6}
-main_label_dict['BICYCLING']
+main_label_list = [['SLEEPING'],
+                   ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],
+                   ['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],
+                   ['COOKING', 'BATHING_-_SHOWER', 'CLEANING', 'DOING_LAUNDRY', 'WASHING_DISHES', 'EATING', 'TOILET', 'GROOMING', 'DRESSING'],
+                   ['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],
+                   ['IN_A_CAR', 'ON_A_BUS', 'DRIVE_-_I_M_THE_DRIVER', 'DRIVE_-_I_M_A_PASSENGER','STAIRS_-_GOING_DOWN', 'ELEVATOR']]
+new_label_list = ['sleep','entertainment','exercise','life_activity','efficiency','on_the_way']
+new_label_dict = {'sleep':0,'entertainment':1,'exercise':2,'life_activity':3,'efficiency':4,'on_the_way':5,'Other':6}
 new_label_data = pd.DataFrame()
-main_label_list = ['LYING_DOWN','SITTING','FIX_walking','FIX_running','BICYCLING','OR_standing']
-main_label_dict = {'LYING_DOWN':0,'SITTING':1,'FIX_walking':2,'FIX_running':3,'BICYCLING':4,'OR_standing':5,'Other':6}
-
 
 for uuid in data.groupby('uuid').count().index:
     X,Y,M,timestamps,feature_names,label_names = Functions.read_user_data(uuid)
     label = pd.DataFrame(data=Y,columns=label_names)
-    label = label[main_label_list]
     new_label = []
+    all_label_list = []
+    for i in main_label_list:
+        all_label_list = all_label_list + i
+    index = []
     for i in label.index:
-        if label.loc[i,:].values.any() == False:
-            new_label.append(main_label_dict['Other'])
+        i = label[i][label[i].values == True].columns
+        if (i not in all_label_list):
+            new_label.append(new_label_dict['Other'])
         else:
-            for j in main_label_list:
-                if label.loc[i,j] == True:
-                    new_label.append(main_label_dict[j])
+            for num,label_list in enumerate(main_label_list):
+                if i in label_list:
+                    new_label.append(new_label_dict[new_label_list[num]])
     muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
     new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
     new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
 
-new_label_data
+all_label_list
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
