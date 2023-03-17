@@ -172,3 +172,27 @@ def pca_to_data(csv_df,n):
 
 
     return (new_feature_df, pca_components)
+def get_related_label(char):
+    with gzip.open('cleaned_data.zip','rb') as data:
+        data = pd.read_csv(data,index_col=[0,1])
+    new_label_data = []
+    for uuid in data.groupby('uuid').count().index:
+        X,Y,M,timestamps,feature_names,label_names = read_user_data(uuid)
+        label_dict = {v: k for k, v in dict(enumerate(label_names + ['None'])).items()}
+        label_list = []
+        for each in Y:
+            if np.array(each).any()==False:
+                continue
+            else:
+                new_label_names = np.array(label_names)[each]
+                if char in new_label_names:
+                    label_list.append(list(new_label_names))
+    new_label_data = new_label_data + label_list
+    labels = []
+    for i in new_label_data:
+        labels = labels + i
+    l_dict = {}
+    for key in labels:
+        l_dict[key] = l_dict.get(key, 0) + 1
+    return l_dict
+

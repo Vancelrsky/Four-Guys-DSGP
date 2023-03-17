@@ -3,6 +3,7 @@ import Functions
 from sklearn.decomposition import PCA
 import pandas as pd
 import gzip
+import numpy as np
 uuid_list = []
 f = open('UUID List.txt', 'r')
 for line in f.readlines():
@@ -52,8 +53,8 @@ for uuid in data.groupby('uuid').count().index:
         label_pair.loc[timestamps[i], 'Label Name'] = temp #把list放進對應的dataframe位置
 
     new_label = []
-    for index in range(len(label_pair.index)):
-        label = label_pair.iloc[index].values[0]
+    for index in label_pair.index:
+        label = list(label_pair.loc[index,:])[0]
         for num,status in enumerate(main_label_list):
             if bool(set(status) & set(label)):
                 new_label.append(num)
@@ -64,7 +65,7 @@ for uuid in data.groupby('uuid').count().index:
                 new_label.append(new_label_dict['Normal'])
                 break
 
-    muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
+    muti_index = pd.MultiIndex.from_product([[uuid], label_pair.index], names=['uuid','timestamps'])
     new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
     new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
 
