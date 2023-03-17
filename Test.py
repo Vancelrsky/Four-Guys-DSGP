@@ -48,6 +48,8 @@ for uuid in data.groupby('uuid').count().index:
     new_label = []
     for index in range(len(label_pair.index)):
         label = label_pair.iloc[index].values[0]
+        print(label)
+        break
         for num,status in enumerate(main_label_list):
             if bool(set(status) & set(label)):
                 new_label.append(num)
@@ -58,12 +60,65 @@ for uuid in data.groupby('uuid').count().index:
                 new_label.append(new_label_dict['Normal'])
                 break
 
-    muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
-    new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
-    new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
+    #muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
+    #new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
+    #new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
 
 new_label_data.value_counts()
+with gzip.open('cleaned_data.zip','rb') as data:
+    data = pd.read_csv(data,index_col=[0,1])
+main_label_list = [['SLEEPING'],
+                   ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],
+                   ['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],
+                   ['COOKING', 'BATHING_-_SHOWER', 'CLEANING', 'DOING_LAUNDRY', 'WASHING_DISHES', 'EATING', 'TOILET', 'GROOMING', 'DRESSING'],
+                   ['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],
+                   ['IN_A_CAR', 'ON_A_BUS', 'DRIVE_-_I_M_THE_DRIVER', 'DRIVE_-_I_M_A_PASSENGER','STAIRS_-_GOING_DOWN', 'ELEVATOR']]
+new_label_list = ['sleep','entertainment','exercise','life_activity','efficiency','on_the_way']
+new_label_dict = {'sleep':0,'entertainment':1,'exercise':2,'life_activity':3,'efficiency':4,'on_the_way':5,'Normal':6}
+all_label_list = []
 
+for i in main_label_list:
+    all_label_list = all_label_list + i
+uuid_list = list(data.groupby('uuid').count().index)
+new_label_data = pd.DataFrame()
+for uuid in [uuid_list[0]]:
+    X,Y,M,timestamps,feature_names,label_names = Functions.read_user_data(uuid)
+    label_pair = pd.DataFrame(
+        columns = ['Label Name'],
+        index = timestamps
+    )
+    s = Y.shape
+
+
+    for i in range(0,s[0]): #跑每個timestamps
+        arr = np.where(Y[i]==1) #尋找這個timestamp 哪些label是ture
+        temp = []
+        for j in arr[0]:
+            temp.append(label_names[j]) #將這個timestamp true的label name拼成list
+        label_pair.loc[timestamps[i], 'Label Name'] = temp #把list放進對應的dataframe位置
+    new_label = []
+
+    for index in label_pair.index:
+        label = label_pair.loc[index].values[0]
+        if bool(label) == True:
+            for num,status in enumerate(main_label_list):
+                if bool(set(status) & set(label)):
+                    new_label.append(num)
+                    break
+                elif bool(set(label) & set(all_label_list)):
+                    continue
+                else:
+                    new_label.append(new_label_dict['Normal'])
+                    break 
+
+    #muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
+    #new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
+    #new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
+label_pair
+l_dict = {}
+for key in label_pair.values:
+    l_dict[key] = l_dict.get(key, 0) + 1
+l_dict
 Functions.get_related_label('COMPUTER_WORK')
 
 each

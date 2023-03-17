@@ -172,6 +172,17 @@ def pca_to_data(csv_df,n):
 
 
     return (new_feature_df, pca_components)
+def pca_to_train_test(X_train, X_test, data):
+    
+    X_train = pd.DataFrame(X_train,columns=data.iloc[:,:-1].columns)
+    X_test = pd.DataFrame(X_test,columns=data.iloc[:,:-1].columns)
+    X_train_pca, projection = pca_to_data(X_train,2)
+
+    audio_test = X_test.loc[:,X_test.columns.str.startswith('audio_naive')]
+    X_test_pca = X_test.loc[:,X_test.columns.str.startswith('audio_naive')==False]
+    projection_matrix = pd.DataFrame(np.dot(audio_test,projection.T),columns=['audio_naive:pc1','audio_naive:pc2'])
+    X_test_pca = pd.concat([X_test_pca,projection_matrix],axis=1)
+    return X_train_pca.values, X_test_pca.values
 def get_related_label(char):
     with gzip.open('cleaned_data.zip','rb') as data:
         data = pd.read_csv(data,index_col=[0,1])

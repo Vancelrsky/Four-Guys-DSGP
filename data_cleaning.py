@@ -53,19 +53,23 @@ for uuid in data.groupby('uuid').count().index:
         label_pair.loc[timestamps[i], 'Label Name'] = temp #把list放進對應的dataframe位置
 
     new_label = []
+    new_index = []
     for index in label_pair.index:
-        label = list(label_pair.loc[index,:])[0]
-        for num,status in enumerate(main_label_list):
-            if bool(set(status) & set(label)):
-                new_label.append(num)
-                break
-            elif bool(set(label) & set(all_label_list)):
-                continue
-            else:
-                new_label.append(new_label_dict['Normal'])
-                break
+        label = label_pair.loc[index].values[0]
+        if bool(label) == True:
+            for num,status in enumerate(main_label_list):
+                if bool(set(status) & set(label)):
+                    new_label.append(num)
+                    new_index.append(index)
+                    break
+                elif bool(set(label) & set(all_label_list)):
+                    continue
+                else:
+                    new_label.append(new_label_dict['Normal'])
+                    new_index.append(index)
+                    break 
 
-    muti_index = pd.MultiIndex.from_product([[uuid], label_pair.index], names=['uuid','timestamps'])
+    muti_index = pd.MultiIndex.from_product([[uuid], new_index], names=['uuid','timestamps'])
     new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
     new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
 
