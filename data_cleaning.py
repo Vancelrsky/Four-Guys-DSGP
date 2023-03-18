@@ -23,13 +23,14 @@ valid_data.to_csv('cleaned_data.zip',mode = 'w',compression= 'gzip')
 with gzip.open('cleaned_data.zip','rb') as data:
     data = pd.read_csv(data,index_col=[0,1])
 main_label_list = [['SLEEPING'],
-                   ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],
+                   ['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],
                    ['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],
                    ['COOKING', 'BATHING_-_SHOWER', 'CLEANING', 'DOING_LAUNDRY', 'WASHING_DISHES', 'EATING', 'TOILET', 'GROOMING', 'DRESSING'],
-                   ['LAB_WORK', 'IN_CLASS', 'IN_A_MEETING', 'LOC_main_workplace','COMPUTER_WORK','AT_SCHOOL', 'WITH_CO-WORKERS'],
+                   ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],                   
                    ['IN_A_CAR', 'ON_A_BUS', 'DRIVE_-_I_M_THE_DRIVER', 'DRIVE_-_I_M_A_PASSENGER','STAIRS_-_GOING_DOWN', 'ELEVATOR']]
-new_label_list = ['sleep','entertainment','exercise','life_activity','efficiency','on_the_way']
-new_label_dict = {'sleep':0,'entertainment':1,'exercise':2,'life_activity':3,'efficiency':4,'on_the_way':5,'Normal':6}
+
+new_label_list = ['sleep','efficiency','exercise','life_activity','entertainment','on_the_way']
+new_label_dict = {'sleep':0, 'efficiency':1, 'exercise':2, 'life_activity':3, 'entertainment':4, 'on_the_way':5, 'Normal':6}
 all_label_list = []
 
 for i in main_label_list:

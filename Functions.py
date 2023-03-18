@@ -5,6 +5,7 @@ from sklearn.impute import KNNImputer
 import os
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+import random
 # this method take a dataframe as input, return the feature part and label part
 def parse_header_of_csv(csv_df):
     # Isolate the headline columns:
@@ -207,3 +208,33 @@ def get_related_label(char):
         l_dict[key] = l_dict.get(key, 0) + 1
     return l_dict
 
+def splitdata(Final_data,test_size):
+    with gzip.open('cleaned_data.zip','rb') as data:
+        data = pd.read_csv(data,index_col=[0,1])
+    idlist = data.groupby('uuid').count().index
+    stamps_index = {}
+    for id in idlist:
+        length = len(Final_data.loc[id])
+        random.seed(777)
+        stamps_index[id] = random.sample(range(0,length),int(length*test_size))
+
+    train_data = pd.DataFrame()
+    test_data = pd.DataFrame()
+
+    for k, v in stamps_index.items():
+        test_data = pd.concat([test_data, Final_data.loc[k].iloc[v]], axis = 0)
+        
+        total = Final_data.loc[k]
+        remain = total[~total.isin(Final_data.loc[k].iloc[v])].dropna()
+        
+        train_data = pd.concat([train_data, remain], axis = 0)
+    
+    # Prepare training data X and Y
+    train_data_x = train_data.iloc[:,:-1].values
+    train_data_y = train_data.iloc[:,-1].values.astype(int)
+
+    # Prepare testing data X and Y
+    test_data_x = test_data.iloc[:,:-1].values
+    test_data_y = test_data.iloc[:,-1].values.astype(int)
+
+    return train_data_x, test_data_x, train_data_y, test_data_y

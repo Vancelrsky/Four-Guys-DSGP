@@ -67,6 +67,7 @@ for uuid in data.groupby('uuid').count().index:
 new_label_data.value_counts()
 with gzip.open('cleaned_data.zip','rb') as data:
     data = pd.read_csv(data,index_col=[0,1])
+len(data.groupby('uuid').count().index)
 main_label_list = [['SLEEPING'],
                    ['FIX_restaurant','SHOPPING', 'STROLLING', 'DRINKING__ALCOHOL_','WATCHING_TV', 'SURFING_THE_INTERNET', 'AT_A_PARTY', 'AT_A_BAR', 'LOC_beach', 'SINGING', 'WITH_FRIENDS'],
                    ['FIX_walking', 'FIX_running', 'BICYCLING','OR_exercise'],
@@ -114,7 +115,49 @@ for uuid in [uuid_list[0]]:
     #muti_index = pd.MultiIndex.from_product([[uuid], X.index], names=['uuid','timestamps'])
     #new_label = pd.DataFrame(data = new_label, index = muti_index,columns = ['Status'])
     #new_label_data = pd.concat([new_label_data,new_label],axis=0,ignore_index=False)
-label_pair
+X_train = pd.DataFrame(X_train,columns=data.iloc[:,:-1].columns)
+X_test = pd.DataFrame(X_test,columns=data.iloc[:,:-1].columns)
+def pca_to_data(csv_df,n):
+
+    pca = PCA(n_components=n)
+    features = csv_df.loc[:,csv_df.columns.str.startswith('audio_naive')]
+    new_features = pca.fit_transform(features)
+    pca_components = pca.components_
+
+    print('PCA explained variance ratio is', pca.explained_variance_ratio_.sum())
+
+    new_feature_df = pd.DataFrame(data=new_features,index=csv_df.index,columns=['audio_naive:pc1','audio_naive:pc2'])
+    other_features = csv_df.loc[:,(csv_df.columns.str.startswith('audio_naive') == False)]
+    new_feature_df = pd.concat([other_features,new_feature_df],axis=1,ignore_index=False)
+
+
+    return (new_feature_df, pca_components)
+def pca_to_train_test(X_train, X_test):
+    X_train = pd.DataFrame(X_train,columns=data.iloc[:,:-1].columns)
+    X_test = pd.DataFrame(X_test,columns=data.iloc[:,:-1].columns)
+    X_train_pca, projection = pca_to_data(X_train,2)
+
+    audio_test = X_test.loc[:,X_test.columns.str.startswith('audio_naive')]
+    X_test_pca = X_test.loc[:,X_test.columns.str.startswith('audio_naive')==False]
+    projection_matrix = pd.DataFrame(np.dot(audio_test,projection.T),columns=['audio_naive:pc1','audio_naive:pc2'])
+    X_test_pca = pd.concat([X_test_pca,projection_matrix],axis=1)
+    return X_train_pca.values, X_test_pca.values
+from sklearn.model_selection import train_test_split
+with gzip.open('cleaned_data.zip','rb') as file:
+    feature_data = pd.read_csv(file,index_col=[0,1])
+
+with gzip.open('new_label_data.zip','rb') as file:
+    new_label_data = pd.read_csv(file,index_col=[0,1])
+
+data = pd.concat([feature_data,new_label_data],join='inner',ignore_index=False,axis=1)
+X = data.iloc[:,:-1].values
+Y = data.iloc[:,-1].values
+# split data
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y,test_size= 0.2, random_state = 52)
+X_train, X_test = Functions.pca_to_train_test(X_train,X_test,data)
+
+print(X_train.shape)
+print(X_test.shape)
 l_dict = {}
 for key in label_pair.values:
     l_dict[key] = l_dict.get(key, 0) + 1
